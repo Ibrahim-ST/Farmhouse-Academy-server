@@ -30,6 +30,7 @@ async function run() {
 
     const instructorsCollection = client.db("farmhouseDb").collection("instructors");
     const classesCollection = client.db("farmhouseDb").collection("classes");
+    const cartCollection = client.db("farmhouseDb").collection("carts");
 
     app.get('/classes', async (req, res) => {
       const result = await classesCollection.find().toArray();
@@ -40,7 +41,14 @@ async function run() {
       const result = await instructorsCollection.find().toArray();
       res.send(result);
     })
-    
+
+    //cart collection
+    app.post('/carts', async (req, res) => {
+      const item = req.body;
+      console.log(item);
+      const result = await cartCollection.insertOne(item);
+      res.send(result);git add .
+    })
 
 
     // Send a ping to confirm a successful connection
