@@ -7,7 +7,7 @@ const jwt = require('jsonwebtoken');
 require("dotenv").config();
 const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 
-//middleware 
+//middleware
 app.use(cors())
 app.use(express.json());
 
@@ -82,11 +82,11 @@ async function run() {
 
 
     // users related apis
-    app.get('/users', verifyJWT, verifyAdmin,  async (req, res) => {
+    app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
-    app.get('/users', verifyJWT, verifyInstructor,  async (req, res) => {
+    app.get('/users', verifyJWT, verifyInstructor, async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -95,11 +95,9 @@ async function run() {
       const user = req.body;
       const query = { email: user.email }
       const existingUser = await usersCollection.findOne(query);
-
       if (existingUser) {
         return res.send({ message: 'user already exists' })
       }
-
       const result = await usersCollection.insertOne(user);
       res.send(result);
     });
@@ -107,11 +105,9 @@ async function run() {
     //admin apis
     app.get('/users/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
-
       if (req.decoded.email !== email) {
         res.send({ admin: false })
       }
-
       const query = { email: email }
       const user = await usersCollection.findOne(query);
       const result = { admin: user?.role === 'admin' }
@@ -133,11 +129,9 @@ async function run() {
 
     app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
-
       if (req.decoded.email !== email) {
         res.send({ instructor: false })
       }
-
       const query = { email: email }
       const user = await usersCollection.findOne(query);
       const result = { instructor: user?.role === 'instructor' }
@@ -181,7 +175,7 @@ async function run() {
     })
 
     //cart collection apis
-    app.get('/carts', verifyJWT , async (req, res) => {
+    app.get('/carts', verifyJWT, async (req, res) => {
       const email = req.query.email;
       if (!email) {
         res.send([])
@@ -191,7 +185,6 @@ async function run() {
       if (email !== decodedEmail) {
         return res.status(403).send({ error: true, message: 'forbidden access' })
       }
-
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
       res.send(result);
@@ -211,8 +204,8 @@ async function run() {
       res.send(result);
     })
 
-     // create payment intent
-     app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+    // create payment intent
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
       const paymentIntent = await stripe.paymentIntents.create({
@@ -230,15 +223,10 @@ async function run() {
     app.post('/payments', verifyJWT, async (req, res) => {
       const payment = req.body;
       const insertResult = await paymentCollection.insertOne(payment);
-
       const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
-      const deleteResult = await cartCollection.deleteMany(query)
-
+      const deleteResult = await cartCollection.deleteMany(query);
       res.send({ insertResult, deleteResult });
     })
-
-   
-
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
